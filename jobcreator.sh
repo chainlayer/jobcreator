@@ -1,0 +1,144 @@
+#!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+NODEURL=https://chainlink.rancher.cinternal.com
+USERNAME=test@test.com
+PASSWORD=12345678
+# Set here or supply with -o
+OPERATOR=chainlayer
+
+if ! command -v node &> /dev/null
+then
+    echo "node could not be found, node is needed to run this program"
+    exit
+fi
+
+if ! command -v jq &> /dev/null
+then
+    echo "jq could not be found, jq is needed to run this program"
+    exit
+fi
+
+if ! command -v curl &> /dev/null
+then
+    echo "curl could not be found, curl is needed to run this program"
+    exit
+fi
+
+if ! command -v git &> /dev/null
+then
+    echo "git could not be found, git is needed to run this program"
+    exit
+fi
+
+repodir=`git rev-parse --show-toplevel 2>/dev/null`
+reponame=`basename ${repodir} 2>/dev/null`
+if [ "$reponame" != "reference-data-directory" ]
+then
+    echo "you are not in the reference data directory!"
+    exit
+fi
+
+# Parse options
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -j|--job)
+    JOB="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -b|--bridge)
+    BRIDGE="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -o|--operator)
+    OPERATOR="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    *)    # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+set -x
+if [ -z "$JOB" ]
+then
+  echo "No job supplied, please supply the path of the Job"
+  exit
+fi
+if [ -z "$BRIDGE" ]
+then
+  echo "No bridge supplied, please supply the path of the Job"
+  exit
+fi
+
+node ${DIR}/jobcreator-web.js $JOB $BRIDGE $OPERATOR $PWD/directory.json >jobspec-web
+if [ ! -s jobspec-web ]
+then
+  echo "Jobspec file is empty, please check if this job actually exists on this branch"
+  exit
+fi
+node ${DIR}/jobcreator-runlog.js $JOB $BRIDGE $OPERATOR $PWD/directory.json >jobspec-runlog
+if [ ! -s jobspec-runlog ]
+then
+  echo "Jobspec file is empty, please check if this job actually exists on this branch"
+  exit
+fi
+
+rm -f cookiefile
+TEMP=`curl -s -c cookiefile -X POST   -H 'Content-Type: application/json' -d '{"email":"'${USERNAME}'", "PASSWORD":"'${PASSWORD}'"}' ${NODEURL}/sessions`
+LOGIN=`echo $TEMP|jq -r '.data.attributes.authenticated'`
+if [ "$LOGIN" != "true" ]
+then
+  echo "Login failed with $TEMP"
+  exit
+fi
+
+echo "logged in creating job with jobid: "
+echo "creating webjob"
+TEMP=`curl -s -b cookiefile -c cookiefile -H 'content-type: application/json' --data @jobspec-web ${NODEURL}/v2/specs`
+WEBJOB=`echo $TEMP|jq -r '.data.id'`
+if [ "$WEBJOB" == "null" ]
+then
+  echo "Failed with $TEMP"; exit
+fi
+
+echo "testing"
+TEMP=`curl -X POST -s -b cookiefile -c cookiefile -H 'content-type: application/json' ${NODEURL}/v2/specs/${WEBJOB}/runs`
+WEBRUN=`echo ${TEMP}|jq -r '.data.id'`
+if [ "$WEBRUN" == "null" ]
+then
+  echo "Failed with ${TEMP}"; exit
+fi
+
+echo "created jobrun ${WEBRUN} for job ${WEBJOB}.. Sleeping 5 seconds"
+sleep 5
+
+TEMP=`curl -s -c cookiefile -b cookiefile ${NODEURL}/v2/runs/${WEBRUN}`
+STATUS=`echo $TEMP|jq -r '.data.attributes.status'`
+
+if [ "$STATUS" != "completed" ]
+then
+  echo "Error occured please check node.. Error: $TEMP"
+else
+  echo "Job successful, creating real job "
+  RUNJOB=`curl -s -b cookiefile -c cookiefile -H 'content-type: application/json' --data @jobspec-runlog ${NODEURL}/v2/specs|jq -r '.data.id'`
+  echo "Created runlog job $RUNJOB"
+  node ${DIR}/jobupdater.js $JOB $RUNJOB $OPERATOR $PWD/directory.json
+  go run cmd/json-fmt/main.go directory.json
+  go run cmd/validate_directory/main.go
+fi
+
+# Cleanup
+rm jobspec-web
+rm jobspec-runlog
+rm cookiefile
