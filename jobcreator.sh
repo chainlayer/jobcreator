@@ -1,11 +1,7 @@
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-NODEURL=https://chainlink.rancher.cinternal.com
-USERNAME=test@test.com
-PASSWORD=12345678
-# Set here or supply with -o
-OPERATOR=chainlayer
+source $DIR/.env
 
 if ! command -v node &> /dev/null
 then
@@ -39,6 +35,10 @@ then
     exit
 fi
 
+# Dont deploy by default
+DEPLOY=0
+TEST=0
+
 # Parse options
 POSITIONAL=()
 while [[ $# -gt 0 ]]
@@ -61,6 +61,16 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    -d|--deploy)
+    DEPLOY=1
+    shift # past argument
+    shift # past value
+    ;;
+    -t|--test)
+    TEST=1
+    shift # past argument
+    shift # past value
+    ;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -69,15 +79,16 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-set -x
 if [ -z "$JOB" ]
 then
   echo "No job supplied, please supply the path of the Job"
+  echo "Usage: jobcreator.sh -j jobpath -b bridgename [-d deploy] [-o operator]"
   exit
 fi
 if [ -z "$BRIDGE" ]
 then
   echo "No bridge supplied, please supply the path of the Job"
+  echo "Usage: jobcreator.sh -j jobpath -b bridgename [-d deploy] [-o operator]"
   exit
 fi
 
@@ -93,6 +104,15 @@ then
   echo "Jobspec file is empty, please check if this job actually exists on this branch"
   exit
 fi
+
+if [ $DEPLOY -eq 0 ] 
+then
+  if [ $TEST -eq 1 ]
+  then
+    cat jobspec-web|jq
+  fi
+  cat jobspec-runlog|jq
+else
 
 rm -f cookiefile
 TEMP=`curl -s -c cookiefile -X POST   -H 'Content-Type: application/json' -d '{"email":"'${USERNAME}'", "PASSWORD":"'${PASSWORD}'"}' ${NODEURL}/sessions`
@@ -142,3 +162,4 @@ fi
 rm jobspec-web
 rm jobspec-runlog
 rm cookiefile
+fi

@@ -30,7 +30,9 @@ for (var a = 0; a < contractkeys.length; a++) {
   if (contracts[contractkeys[a]].marketing.path == job) {
     for (var b = 0; b < contracts[contractkeys[a]].oracles.length; b++) {
       if (contracts[contractkeys[a]].oracles[b].operator == operator) {
-        contracts[contractkeys[a]].oracles[b].jobId = jobid
+        if (contracts[contractkeys[a]].contractVersion == 2) {
+          contracts[contractkeys[a]].oracles[b].jobId = jobid
+        }
       }
     }
   }

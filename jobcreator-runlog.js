@@ -35,7 +35,16 @@ for (var a = 0; a < contractkeys.length; a++) {
       jobspec.initiators.push({
         "type": "runlog",
         "params": {
-          "address": oracleAddress
+          "address": oracleAddress,
+          "requesters": [ contractkeys[a], 
+                          '0xBd2263cd600749a7072B41C04678f7647ee47e95',
+                          '0xC7A524e42d834408Ff001E5471Fac0117B3A9E88',
+                          '0xc9d995bc276385e6E9136Dabe1223Db8a1777d2a',
+                          '0x88424e492b31D46f9F2e12A3d9187a9C486cA4B8',
+                          '0xAAf337687be186caE90Db1230d4C31567BeB32Ef',
+                          '0xb96051214aaa35CEA7e95F2f6940bF15AACcc896',
+                          '0xabd9290B57A0FBC565D21aDE4311AE6393AeA822'
+          ]
         }
       })
       jobspec.tasks = new Array();
@@ -92,7 +101,7 @@ for (var a = 0; a < contractkeys.length; a++) {
           "threshold": contracts[contractkeys[a]].deviationThreshold,
           "precision": contracts[contractkeys[a]].decimals,
           "idleTimer": (contracts[contractkeys[a]].heartbeat==null?
-             {"disabled": true,"duration": "0s"}:
+             { "duration": "24h" }:
              { "duration": contracts[contractkeys[a]].heartbeat }
           ),
           "pollTimer": {
