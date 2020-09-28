@@ -1,9 +1,10 @@
 'use strict';
 
 var job = process.argv[2]
-var bridge = process.argv[3]
-var operator = process.argv[4]
-var directoryfile = process.argv[5]
+var version = process.argv[3]
+var bridge = process.argv[4]
+var operator = process.argv[5]
+var directoryfile = process.argv[6]
 
 const fs = require('fs');
 
@@ -27,7 +28,7 @@ for (var a = 0; a < opkeys.length; a++) {
 
 // Find job
 for (var a = 0; a < contractkeys.length; a++) {
-  if (contracts[contractkeys[a]].marketing.path == job) {
+  if (contracts[contractkeys[a]].name == job && contracts[contractkeys[a]].contractVersion == version) {
     let jobspec = new Object();
     if (contracts[contractkeys[a]].contractVersion==2) {
       // found the job, create jobspec
