@@ -2,9 +2,8 @@
 
 var job = process.argv[2]
 var version = process.argv[3]
-var bridge = process.argv[4]
-var operator = process.argv[5]
-var directoryfile = process.argv[6]
+var operator = process.argv[4]
+var directoryfile = process.argv[5]
 
 const fs = require('fs');
 
@@ -32,6 +31,15 @@ for (var a = 0; a < contractkeys.length; a++) {
     let jobspec = new Object();
     if (contracts[contractkeys[a]].contractVersion==2) {
       // found the job, create jobspec
+      // find and create the bridgename
+      let feeds = new Array()
+      let bridgename = ""
+      for (var b = 0; b < contracts[contractkeys[a]].oracles.length; b++) {
+        if (contracts[contractkeys[a]].oracles[b].operator == operator) {
+          bridgename = "bridge-" + contracts[contractkeys[a]].oracles[b].api[0]
+        }
+      }
+
       jobspec.initiators = new Array();
       jobspec.initiators.push({
         "type": "runlog",
@@ -50,7 +58,7 @@ for (var a = 0; a < contractkeys.length; a++) {
       })
       jobspec.tasks = new Array();
       jobspec.tasks.push({
-        "type": bridge,
+        "type": bridgename,
         "params": {
           "from": contracts[contractkeys[a]].marketing.pair[0],
           "to": contracts[contractkeys[a]].marketing.pair[1]
@@ -83,6 +91,16 @@ for (var a = 0; a < contractkeys.length; a++) {
     }
     if (contracts[contractkeys[a]].contractVersion==3) {
       // found the job, create jobspec
+      // find and create the feeds array
+      let feeds = new Array()
+      for (var b = 0; b < contracts[contractkeys[a]].oracles.length; b++) {
+        if (contracts[contractkeys[a]].oracles[b].operator == operator) {
+          for (var c = 0; c < contracts[contractkeys[a]].oracles[b].api.length; c++) {
+            feeds.push({"bridge": "bridge-" + contracts[contractkeys[a]].oracles[b].api[c]})
+          }
+        }
+      }
+
       jobspec.initiators = new Array();
       jobspec.initiators.push({
         "type": "fluxmonitor",
@@ -94,11 +112,7 @@ for (var a = 0; a < contractkeys.length; a++) {
               "to": contracts[contractkeys[a]].marketing.pair[1]
             },
           },
-          "feeds": [
-            {
-              "bridge": bridge
-            }
-          ],
+          "feeds": feeds,
           "threshold": contracts[contractkeys[a]].deviationThreshold,
           "precision": contracts[contractkeys[a]].decimals,
           "idleTimer": (contracts[contractkeys[a]].heartbeat==null?

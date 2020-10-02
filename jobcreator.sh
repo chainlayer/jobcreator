@@ -56,11 +56,6 @@ case $key in
     shift # past argument
     shift # past value
     ;;
-    -b|--bridge)
-    BRIDGE="$2"
-    shift # past argument
-    shift # past value
-    ;;
     -o|--operator)
     OPERATOR="$2"
     shift # past argument
@@ -87,29 +82,23 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 if [ -z "$JOB" ]
 then
   echo "No job supplied, please supply the path of the Job"
-  echo "Usage: jobcreator.sh -j jobpath -v version -b bridgename [-d deploy] [-o operator]"
+  echo "Usage: jobcreator.sh -j jobname -v version [-d deploy] [-o operator]"
   exit
 fi
 if [ -z "$VERSION" ]
 then
   echo "No version supplied, please supply the version of the Job (2=runlog 3=fluxmonitor)"
-  echo "Usage: jobcreator.sh -j jobpath -v version -b bridgename [-d deploy] [-o operator]"
-  exit
-fi
-if [ -z "$BRIDGE" ]
-then
-  echo "No bridge supplied, please supply the path of the Job"
-  echo "Usage: jobcreator.sh -j jobpath -v version -b bridgename [-d deploy] [-o operator]"
+  echo "Usage: jobcreator.sh -j jobname -v version [-d deploy] [-o operator]"
   exit
 fi
 
-node ${DIR}/jobcreator-web.js "${JOB}" $VERSION $BRIDGE $OPERATOR $PWD/directory.json >jobspec-web
+node ${DIR}/jobcreator-web.js "${JOB}" $VERSION $OPERATOR $PWD/directory.json >jobspec-web
 if [ ! -s jobspec-web ]
 then
   echo "Jobspec file is empty, please check if this job actually exists on this branch"
   exit
 fi
-node ${DIR}/jobcreator-runlog.js "${JOB}" $VERSION $BRIDGE $OPERATOR $PWD/directory.json >jobspec-runlog
+node ${DIR}/jobcreator-runlog.js "${JOB}" $VERSION $OPERATOR $PWD/directory.json >jobspec-runlog
 if [ ! -s jobspec-runlog ]
 then
   echo "Jobspec file is empty, please check if this job actually exists on this branch"

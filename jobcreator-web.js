@@ -2,9 +2,8 @@
 
 var job = process.argv[2]
 var version = process.argv[3]
-var bridge = process.argv[4]
-var operator = process.argv[5]
-var directoryfile = process.argv[6]
+var operator = process.argv[4]
+var directoryfile = process.argv[5]
 
 const fs = require('fs');
 
@@ -30,6 +29,14 @@ for (var a = 0; a < opkeys.length; a++) {
 for (var a = 0; a < contractkeys.length; a++) {
   if (contracts[contractkeys[a]].name == job && contracts[contractkeys[a]].contractVersion == version) {
     // found the job, create jobspec
+    // find and create the bridgename
+    let feeds = new Array()
+    let bridgename = ""
+    for (var b = 0; b < contracts[contractkeys[a]].oracles.length; b++) {
+      if (contracts[contractkeys[a]].oracles[b].operator == operator) {
+        bridgename = "bridge-" + contracts[contractkeys[a]].oracles[b].api[0]
+      }
+    }
     let jobspec = new Object();
     jobspec.initiators = new Array();
     jobspec.initiators.push({
@@ -37,7 +44,7 @@ for (var a = 0; a < contractkeys.length; a++) {
     })
     jobspec.tasks = new Array();
     jobspec.tasks.push({
-      "type": bridge,
+      "type": bridgename,
       "params": {
         "from": contracts[contractkeys[a]].marketing.pair[0],
         "to": contracts[contractkeys[a]].marketing.pair[1]
