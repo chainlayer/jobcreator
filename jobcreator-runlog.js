@@ -59,6 +59,10 @@ for (var a = 0; a < contractkeys.length; a++) {
       jobspec.tasks = new Array();
       jobspec.tasks.push({
         "type": bridgename,
+        "params": {
+          "from": contracts[contractkeys[a]].marketing.pair[0],
+          "to": contracts[contractkeys[a]].marketing.pair[1]
+        }
       })
       jobspec.tasks.push({
         "type": "copy",
@@ -102,6 +106,12 @@ for (var a = 0; a < contractkeys.length; a++) {
         "type": "fluxmonitor",
         "params": {
           "address": contractkeys[a],
+          "requestData": {
+            "data": {
+              "from": contracts[contractkeys[a]].marketing.pair[0],
+              "to": contracts[contractkeys[a]].marketing.pair[1]
+            },
+          },
           "feeds": feeds,
           "threshold": (contracts[contractkeys[a]].deviationThreshold==null || contracts[contractkeys[a]].deviationThreshold==0?
              0.1:
