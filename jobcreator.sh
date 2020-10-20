@@ -152,10 +152,16 @@ then
 else
   echo "Job successful, creating real job "
   RUNJOB=`curl -s -b cookiefile -c cookiefile -H 'content-type: application/json' --data @jobspec-runlog ${NODEURL}/v2/specs|jq -r '.data.id'`
-  echo "Created runlog job $RUNJOB"
-  #node ${DIR}/jobupdater.js $JOB $VERSION $RUNJOB $OPERATOR $PWD/directory.json
-  #go run cmd/json-fmt/main.go directory.json
-  #go run cmd/validate_directory/main.go
+  if [ $VERSION == 2 ]
+  then
+    echo "Created runlog job $RUNJOB and modified directory.json"
+    echo "  Make a pull-request with hub pull-request -b <branch>"
+    node ${DIR}/jobupdater.js "${JOB}" $RUNJOB $OPERATOR $PWD/directory.json
+    go run cmd/json-fmt/main.go directory.json
+    go run cmd/validate_directory/main.go
+  else
+    echo "Created fluxmonitor job $RUNJOB"
+  fi
 fi
 
 # Cleanup

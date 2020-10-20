@@ -1,6 +1,8 @@
 'use strict';
+// USAGE
+//   node ${DIR}/jobupdater.js $JOB $RUNJOB $OPERATOR $PWD/directory.json
 
-var job = process.argv[2]
+var jobname = process.argv[2]
 var jobid = process.argv[3]
 var operator = process.argv[4]
 var directoryfile = process.argv[5]
@@ -27,12 +29,10 @@ for (var a = 0; a < opkeys.length; a++) {
 
 // Find job
 for (var a = 0; a < contractkeys.length; a++) {
-  if (contracts[contractkeys[a]].marketing.path == job) {
+  if (contracts[contractkeys[a]].name == jobname && contracts[contractkeys[a]].contractVersion == 2) {
     for (var b = 0; b < contracts[contractkeys[a]].oracles.length; b++) {
       if (contracts[contractkeys[a]].oracles[b].operator == operator) {
-        if (contracts[contractkeys[a]].contractVersion == 2) {
-          contracts[contractkeys[a]].oracles[b].jobId = jobid
-        }
+        contracts[contractkeys[a]].oracles[b].jobId = jobid
       }
     }
   }
