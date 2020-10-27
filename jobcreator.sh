@@ -94,8 +94,12 @@ then
   echo "Usage: jobcreator.sh -j jobname -v version [-d deploy] [-o operator]"
   exit
 fi
+if [ -z "$NETWORK" ]
+then
+  NETWORK=mainnet
+fi
 
-if [ "$NETWORK" == "" ]
+if [ "$NETWORK" == "mainnet" ]
 then
   node ${DIR}/jobcreator-web.js "${JOB}" $VERSION $OPERATOR $PWD/directory.json >jobspec-web
 else
@@ -106,7 +110,7 @@ then
   echo "Jobspec file is empty, please check if this job actually exists on this branch"
   exit
 fi
-if [ "$NETWORK" == "" ]
+if [ "$NETWORK" == "mainnet" ]
 then
   node ${DIR}/jobcreator-runlog.js "${JOB}" $VERSION $OPERATOR $PWD/directory.json >jobspec-runlog
 else
