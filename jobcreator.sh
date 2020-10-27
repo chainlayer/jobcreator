@@ -61,14 +61,17 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    -n|--network)
+    NETWORK="$2"
+    shift # past argument
+    shift # past value
+    ;;
     -d|--deploy)
     DEPLOY=1
-    shift # past argument
     shift # past value
     ;;
     -t|--test)
     TEST=1
-    shift # past argument
     shift # past value
     ;;
     *)    # unknown option
@@ -92,13 +95,23 @@ then
   exit
 fi
 
-node ${DIR}/jobcreator-web.js "${JOB}" $VERSION $OPERATOR $PWD/directory.json >jobspec-web
+if [ "$NETWORK" == "" ]
+then
+  node ${DIR}/jobcreator-web.js "${JOB}" $VERSION $OPERATOR $PWD/directory.json >jobspec-web
+else
+  node ${DIR}/jobcreator-web.js "${JOB}" $VERSION $OPERATOR $PWD/directory-${NETWORK}.json >jobspec-web
+fi
 if [ ! -s jobspec-web ]
 then
   echo "Jobspec file is empty, please check if this job actually exists on this branch"
   exit
 fi
-node ${DIR}/jobcreator-runlog.js "${JOB}" $VERSION $OPERATOR $PWD/directory.json >jobspec-runlog
+if [ "$NETWORK" == "" ]
+then
+  node ${DIR}/jobcreator-runlog.js "${JOB}" $VERSION $OPERATOR $PWD/directory.json >jobspec-runlog
+else
+  node ${DIR}/jobcreator-runlog.js "${JOB}" $VERSION $OPERATOR $PWD/directory-${NETWORK}.json >jobspec-runlog
+fi
 if [ ! -s jobspec-runlog ]
 then
   echo "Jobspec file is empty, please check if this job actually exists on this branch"
