@@ -45,10 +45,10 @@ for (var a = 0; a < contractkeys.length; a++) {
     jobspec.tasks = new Array();
     jobspec.tasks.push({
       "type": bridgename,
-      "params": {
+      "params": (contracts[contractkeys[a]].customData?contracts[contractkeys[a]].customData:{
         "from": contracts[contractkeys[a]].marketing.pair[0],
         "to": contracts[contractkeys[a]].marketing.pair[1]
-      }
+      })
     })
     jobspec.tasks.push({
       "type": "copy",
