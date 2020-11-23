@@ -29,7 +29,7 @@ for (var a = 0; a < opkeys.length; a++) {
 for (var a = 0; a < contractkeys.length; a++) {
   if (contracts[contractkeys[a]].name == job && contracts[contractkeys[a]].contractVersion == version) {
     let jobspec = new Object();
-    if (contracts[contractkeys[a]].contractVersion==2) {
+    if (contracts[contractkeys[a]].contractVersion==2 || contracts[contractkeys[a]].contractVersion==1) {
       // found the job, create jobspec
       // find and create the bridgename
       let feeds = new Array()
@@ -40,20 +40,13 @@ for (var a = 0; a < contractkeys.length; a++) {
         }
       }
 
-      jobspec.name = contracts[contractkeys[a]].name + " version " + contracts[contractkeys[a]].contractVersion + " contract " + contractkeys[a] + " " + Date.now()
       jobspec.initiators = new Array();
       jobspec.initiators.push({
         "type": "runlog",
         "params": {
           "address": oracleAddress,
-          "requesters": [ contractkeys[a], 
-                          '0xBd2263cd600749a7072B41C04678f7647ee47e95',
-                          '0xC7A524e42d834408Ff001E5471Fac0117B3A9E88',
-                          '0xc9d995bc276385e6E9136Dabe1223Db8a1777d2a',
-                          '0x88424e492b31D46f9F2e12A3d9187a9C486cA4B8',
-                          '0xAAf337687be186caE90Db1230d4C31567BeB32Ef',
-                          '0xb96051214aaa35CEA7e95F2f6940bF15AACcc896',
-                          '0xabd9290B57A0FBC565D21aDE4311AE6393AeA822'
+          "requesters": [
+            "0x59bbE8CFC79c76857fE0eC27e67E4957370d72B5"
           ]
         }
       })
@@ -61,8 +54,8 @@ for (var a = 0; a < contractkeys.length; a++) {
       jobspec.tasks.push({
         "type": bridgename,
         "params": (contracts[contractkeys[a]].customData?contracts[contractkeys[a]].customData:{
-          "from": contracts[contractkeys[a]].marketing.pair[0],
-          "to": contracts[contractkeys[a]].marketing.pair[1]
+          "market": "BTC",
+          "endpoint": "dominance"
         })
       })
       jobspec.tasks.push({
@@ -102,7 +95,6 @@ for (var a = 0; a < contractkeys.length; a++) {
         }
       }
 
-      jobspec.name = contracts[contractkeys[a]].name + " version " + contracts[contractkeys[a]].contractVersion + " contract " + contractkeys[a] + " " + Date.now()
       jobspec.initiators = new Array();
       jobspec.initiators.push({
         "type": "fluxmonitor",
@@ -125,7 +117,7 @@ for (var a = 0; a < contractkeys.length; a++) {
           ),
           "pollTimer": (contracts[contractkeys[a]].deviationThreshold==null || contracts[contractkeys[a]].deviationThreshold==0?
              { "disabled" : true }:
-             { "period": contracts[contractkeys[a]].pollingInterval }
+             { "period": "1m" }
           )
         }
       })

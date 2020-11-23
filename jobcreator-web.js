@@ -38,6 +38,7 @@ for (var a = 0; a < contractkeys.length; a++) {
       }
     }
     let jobspec = new Object();
+    jobspec.name = contracts[contractkeys[a]].name + " webjob contract " + contractkeys[a] + " " + Date.now()
     jobspec.initiators = new Array();
     jobspec.initiators.push({
       "type": "web",

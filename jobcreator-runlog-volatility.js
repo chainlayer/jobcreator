@@ -61,8 +61,10 @@ for (var a = 0; a < contractkeys.length; a++) {
       jobspec.tasks.push({
         "type": bridgename,
         "params": (contracts[contractkeys[a]].customData?contracts[contractkeys[a]].customData:{
-          "from": contracts[contractkeys[a]].marketing.pair[0],
-          "to": contracts[contractkeys[a]].marketing.pair[1]
+            "symbol": contracts[contractkeys[a]].marketing.pair[0],
+            "days": contracts[contractkeys[a]].marketing.pair[1].substr(3,1),
+            "multiply": 1e+18,
+            "referenceContract": contractkeys[a]
         })
       })
       jobspec.tasks.push({
@@ -110,8 +112,10 @@ for (var a = 0; a < contractkeys.length; a++) {
           "address": contractkeys[a],
           "requestData": {
             "data": (contracts[contractkeys[a]].customData?contracts[contractkeys[a]].customData:{
-              "from": contracts[contractkeys[a]].marketing.pair[0],
-              "to": contracts[contractkeys[a]].marketing.pair[1]
+              "symbol": contracts[contractkeys[a]].marketing.pair[0],
+              "days": contracts[contractkeys[a]].marketing.pair[1].substr(3,1),
+              "multiply": 1e+18,
+              "referenceContract": contractkeys[a]
             })
           },
           "feeds": feeds,
